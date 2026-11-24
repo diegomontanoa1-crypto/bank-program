@@ -1,2 +1,7 @@
 __pycache__/
 .pytest_cache/
+
+# account data created when the program runs
+balance.txt
+history.csv
+names.txt
