@@ -1,8 +1,13 @@
-# Bank program
-#### Video Demo: https://youtu.be/G6G5rzsrRBE
-#### Description:
+# Bank Program
 
-Bank program is a really basic concept of how a program for a bank could work, you can check your balance, withdraw or deposit money and it runs in a loop until someone presses "4" to exit.
+A small bank account that runs in the terminal, written in Python. It started as my final project for CS50P, and I kept building on it after the course.
+
+## What it does
+
+- Check your balance, deposit money and withdraw money.
+- Remembers your name, your balance and every movement between runs.
+- Refuses amounts that are zero or negative, and withdrawals bigger than your balance.
+- Keeps asking when you type something that isn't a number, instead of crashing.
 
 ## How to run it
 
@@ -10,45 +15,76 @@ Bank program is a really basic concept of how a program for a bank could work, y
 python project.py
 ```
 
-## Files
-
-- project.py
-- test_project.py
-- requirements.txt
-- README.md
-
-### project.py
-
-**`main`**: Main creates a balance starting at 0 and prints out the menu, it then has an if, elif and else to match the menu's number so that then the functions get called inside of a loop so that it only exits if the user presses "4".
-
-**`get_number`**: It takes a "prompt" which is text and then returns the integer the user typed as an answer. If the user did not type a number, it prints a message asking again until it's an int. It is used for the deposit amount, withdraw amount and for the menu option.
-
-**`check_balance`**: It takes the current balance and returns a text with the balance, and it does not print anything because main prints what it returned.
-
-**`deposit`**: It takes the current balance and the amount to deposit, if the amount is above 0, it adds it and returns the new balance. If the amount is 0 or negative it prints out "invalid amount" and returns the balance unchanged.
-
-**`withdraw`**: It takes the current balance and amount to withdraw, to then check if the amount is 0 or negative and prints "invalid amount" to then return the balance unchanged. If the amount is bigger than the current balance it prints "Not enough balance" and returns the balance unchanged. Otherwise it subtracts it and returns the new balance. And withdrawing the exact balance is allowed to leave 0 in the account.
-
-### test_project.py
-
-It has 3 tests, one per function.
-
-- For deposit it tests a normal amount, zero and a negative amount.
-- For withdraw it tests a normal amount, the exact balance and one more than the balance. Eg: balance 100, test 101.
-- For check balance it tests the text for a balance of 100 and 0.
-
-It runs with:
+It needs no extra libraries to run. The first time, it asks for your name:
 
 ```
-pytest test_project.py
+What's your name? Diego
+Hello! Nice to meet you, Diego
+=== MAIN MENU ===
+1. Check Balance
+2. Deposit
+3. Withdraw
+4. Movements
+5. Exit
+Option: 2
+Amount to deposit: 100
+New balance: 100
 ```
 
-### requirements.txt
+The next time you run it, it greets you by name and your balance is still there.
 
-It lists the only requirement which is: pytest
+## Files it creates
+
+The program saves its data next to `project.py`:
+
+| File | What it holds |
+|---|---|
+| `names.txt` | the account holder's name |
+| `balance.txt` | the current balance |
+| `history.csv` | one row for every deposit and withdrawal |
+
+These three are listed in `.gitignore`, so account data is never uploaded with the code. Delete them to start again with a new account.
+
+## How the code is organised
+
+Everything is in `project.py`.
+
+**Talking to the user**
+
+- `main` loads the saved data, greets the user and runs the menu loop until the user picks 5. It is the only function that asks questions.
+- `get_number` shows a question and returns the whole number the user types. If the answer isn't a number, it asks again.
+
+**The rules of the bank**
+
+- `check_balance` takes the balance and returns the text to show.
+- `deposit` takes the balance and an amount. It returns the new balance, or the same balance if the amount is zero or negative.
+- `withdraw` takes the balance and an amount. It returns the new balance, or the same balance if the amount is zero, negative or more than the balance. Withdrawing the exact balance is allowed.
+
+**Saving and loading**
+
+- `save_balance` and `load_balance` write and read `balance.txt`.
+- `save_movement` adds a row to `history.csv`, and `load_history` reads all the rows back as a list.
+- `save_name` and `load_name` write and read `names.txt`.
 
 ## Design choices
 
-I decided to have a function for withdraw, deposit, check balance so that I could simply call it in main based on the option the user typed. Also there is a function for getting a number so that I don't repeat code that I need in three different places, and also since the while True is inside get_number it means that if someone types "Cat" the program asks for it again, instead of just crashing, the function only returns once it has a real number in it. That way main is as organized as possible, it does not have any math on it but just calls the functions.
+**The balance is saved after every menu action, not only on exit.** If the program is closed in the middle of a session, nothing is lost.
 
-I had to move asking into main instead of including it on the functions so that I could test it correctly, because if not it just asked me for a value instead of responding it. And for check balance I made it return the text.
+**Only movements that really happened are recorded.** `main` remembers the balance before calling `deposit` or `withdraw` and compares it with the result. If the balance did not change, the request was refused and nothing is written to the history.
+
+**A missing file and a damaged file are treated differently.** A missing file means a new account, so the program starts with a balance of 0, an empty history and no name. A balance file that can't be read as a number stops the program with a message. Starting again at 0 would overwrite the file and hide the problem.
+
+**All the asking happens in `main`.** `deposit`, `withdraw` and `check_balance` only take values and return a result, which is what makes them possible to test.
+
+## Tests
+
+```
+pip install -r requirements.txt
+pytest test_project.py
+```
+
+There are three tests, for `deposit`, `withdraw` and `check_balance`. They cover normal amounts, zero, negative amounts, withdrawing the exact balance and withdrawing more than the balance. The save and load functions don't have tests yet.
+
+## Background
+
+The first version of this program was my final project for [CS50's Introduction to Programming with Python](https://cs50.harvard.edu/python/). This [video demo](https://youtu.be/G6G5rzsrRBE) shows that original version, before saving, the history and the name were added.
